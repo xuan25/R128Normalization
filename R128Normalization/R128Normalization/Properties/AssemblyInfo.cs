@@ -4,12 +4,12 @@ using System.Runtime.InteropServices;
 // 有关程序集的一般信息由以下
 // 控制。更改这些特性值可修改
 // 与程序集关联的信息。
-[assembly: AssemblyTitle("LufsNormalization")]
+[assembly: AssemblyTitle("R128Normalization")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("LufsNormalization")]
-[assembly: AssemblyCopyright("Copyright ©  2020")]
+[assembly: AssemblyProduct("R128Normalization")]
+[assembly: AssemblyCopyright("Copyright ©  2020  Xuan525")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 

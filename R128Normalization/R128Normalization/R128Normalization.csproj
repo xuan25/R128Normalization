@@ -45,13 +45,13 @@
   <ItemGroup>
     <Compile Include="R128\Lufs\R128LufsMeter.cs" />
     <Compile Include="R128\Lufs\SecondOrderIIRFilter.cs" />
-    <Compile Include="R128\R128Normalization.cs" />
+    <Compile Include="R128\Normalization.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="R128\Utils\OverSampler4x.cs" />
-    <Compile Include="R128\Utils\TruePeakLimiter.cs" />
+    <Compile Include="R128\Limiter\OverSampler4x.cs" />
+    <Compile Include="R128\Limiter\TruePeakLimiter.cs" />
     <Compile Include="R128\Utils\Gain.cs" />
-    <Compile Include="R128\Utils\TruePeakMeter.cs" />
+    <Compile Include="R128\Limiter\TruePeakMeter.cs" />
     <Compile Include="Wav\FFmpegWavPiper.cs" />
     <Compile Include="Wav\WavReader.cs" />
     <Compile Include="Wav\WavWriter.cs" />
