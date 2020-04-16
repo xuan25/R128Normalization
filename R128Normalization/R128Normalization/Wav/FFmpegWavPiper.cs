@@ -27,6 +27,7 @@ namespace Wav
 {
     public class FFmpegWavPiper
     {
+        public class FFmepgNotFoundException : Exception { }
         public static Stream GetF64WavStream(string fileName, int sampleRate, DataReceivedEventHandler logReceivedHandler)
         {
             Process process = CreateWorkingProcess("ffmpeg.exe", string.Format("-i \"{0}\" -ar {1} -acodec pcm_f64le -f wav -", fileName, sampleRate), null, logReceivedHandler, null);
@@ -102,7 +103,21 @@ namespace Wav
                 process.Exited += exitedHandler;
             }
 
-            process.Start();
+            try
+            {
+                process.Start();
+            }
+            catch (System.ComponentModel.Win32Exception ex)
+            {
+                if(ex.NativeErrorCode == 2)
+                {
+                    throw new FFmepgNotFoundException();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
             if (outputDataReceivedHandler != null)
             {

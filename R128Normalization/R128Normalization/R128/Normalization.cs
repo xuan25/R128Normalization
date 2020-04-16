@@ -41,21 +41,60 @@ namespace R128
         /// <param name="outputFile">Output filename</param>
         public static void Normalize(string inputFile, string outputFile)
         {
-            // Decode
-            Stream stream = FFmpegWavPiper.GetS32WavStream(inputFile, FFmpegLogReceived);
-            WavReader wav = new WavReader(stream, Encoding.UTF8);
-            WavReader.FmtChunk fmt = (WavReader.FmtChunk)wav.Riff.Chunks["fmt "];
-            double[][] buffer = wav.GetSampleData();
+            try
+            {
+                // Decode
+                WavReader wavReader;
+                try
+                {
+                    using (FileStream fileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    {
+                        wavReader = new WavReader(fileStream, Encoding.Default);
+                    }
+                }
+                catch (WavReader.FormatNotSupportedException ex)
+                {
+                    Stream ffStream;
+                    try
+                    {
+                        ffStream = FFmpegWavPiper.GetS32WavStream(inputFile, FFmpegLogReceived);
+                    }
+                    catch (FFmpegWavPiper.FFmepgNotFoundException)
+                    {
+                        Console.WriteLine("FFmpeg not found. Non-wav files require ffmpeg for decoding support. File skipped.");
+                        return;
+                    }
+                    wavReader = new WavReader(ffStream, Encoding.UTF8);
+                }
 
-            // Normalize
-            Normalize(buffer, fmt.SampleRate);
+                WavReader.FmtChunk fmt = (WavReader.FmtChunk)wavReader.Riff.Chunks["fmt "];
+                double[][] buffer = wavReader.GetSampleData();
 
-            // Encode
-            WavWriter wavWriter = new WavWriter(buffer, fmt.SampleRate, 0x0003, 32, ((WavReader.ListChunk)wav.Riff.Chunks["LIST"]).Data, Encoding.Default);
-            wavWriter.Infos["ISFT"] = "Build-in codec";
-            wavWriter.Infos["ITCH"] = "Demo中文测试";
-            wavWriter.Save(outputFile);
-            Console.WriteLine("File saved: {0}", Path.GetFileNameWithoutExtension(outputFile));
+                // Normalize
+                Normalize(buffer, fmt.SampleRate);
+
+                // Encode
+                WavWriter wavWriter = new WavWriter(buffer, fmt.SampleRate, 0x0003, 32, null, Encoding.Default);
+                if (wavReader.Riff.Chunks.ContainsKey("LIST"))
+                {
+                    wavWriter.Infos = ((WavReader.ListChunk)wavReader.Riff.Chunks["LIST"]).Data;
+                }
+                else
+                {
+                    wavWriter.Infos = new System.Collections.Generic.SortedDictionary<string, string>();
+                }
+                wavWriter.Infos["ISFT"] = "Build-in codec";
+                wavWriter.Infos["ITCH"] = "Demo中文测试";
+                wavWriter.Save(outputFile);
+                Console.WriteLine("File saved: {0}", Path.GetFileNameWithoutExtension(outputFile));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An exception has occurred : ");
+                Console.WriteLine($"{ex.GetType()} : {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+            }
+            
         }
 
         /// <summary>
