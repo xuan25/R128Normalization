@@ -352,14 +352,21 @@ namespace Wav
                 {
                     ExtraParamSize = binaryReader.ReadInt16();
                     position += 2;
-                    if (ExtraParamSize == 22)
+                    if(ExtraParamSize != 0)
                     {
-                        ExtraParams = new Extra(binaryReader);
-                        position += ExtraParamSize;
+                        if (ExtraParamSize == 22)
+                        {
+                            ExtraParams = new Extra(binaryReader);
+                            position += ExtraParamSize;
+                        }
+                        else
+                        {
+                            throw new FormatNotSupportedException();
+                        }
                     }
                     else
                     {
-                        throw new FormatNotSupportedException();
+                        ExtraParamSize = 0;
                     }
                 }
                 else
