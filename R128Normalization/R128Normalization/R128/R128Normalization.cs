@@ -55,8 +55,8 @@ namespace R128
             double integratedLoudness = r128LufsMeter.IntegratedLoudness;
             Console.WriteLine("\rInput integrated loudness: {0} LU", integratedLoudness);
 
-            // Normalization to -14 LU
-            double targetLoudness = -14;
+            // Normalization to -23 LU
+            double targetLoudness = -23;
             int count = 0;
             while (Math.Abs(integratedLoudness - targetLoudness) > 0.5)
             {
@@ -77,8 +77,8 @@ namespace R128
                 Console.WriteLine("\rOutput integrated loudness {0}: {1} LU", count, integratedLoudness);
             }
 
-            // Limit to -3 dB True Peak
-            TruePeakLimiter.ProcessBuffer(buffer, -3, sampleRate, 0.001, 0.8,
+            // Limit to -1 dB True Peak
+            TruePeakLimiter.ProcessBuffer(buffer, -1, sampleRate, 0.001, 0.8,
                 (double current, double total) => { if (current % 10000 == 0) { Console.Write("\rLimiting : {0}/{1}", current, total); } },
                 //(double env) => streamWriter.WriteLine(env)
                 null);
