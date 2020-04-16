@@ -2,11 +2,11 @@
 
 ***中文说明请往下看***
 
-A auto normalization program which followed EBU R128 standard
+A audio auto normalization tool which followed EBU R128 standard
 
 ## Features
 
-- Auto normalization for sound files
+- Auto normalization for audio files
 - Following EBU R128 standard and ITU BS.1770 standard (LUFS)
 - Core algorithm is fully implemented in C#
 - Using [FFmpeg](https://www.ffmpeg.org/) for decoding files which are not wav format
@@ -28,11 +28,11 @@ A auto normalization program which followed EBU R128 standard
 
 ***For english description, please scroll up***
 
-遵循EBU R128标准的自动标准化程序
+遵循EBU R128标准的音频自动标准化工具
 
 ## 特性
 
-- 自动标准化声音文件
+- 自动标准化音频文件
 - 遵循EBU R128标准和ITU BS.1770标准（LUFS）
 - 核心算法在C＃中完全实现
 - 使用[FFmpeg](https://www.ffmpeg.org/)解码非wav格式的文件
