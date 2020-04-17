@@ -225,6 +225,16 @@ namespace R128.Lufs
         public void ResetIntegrated()
         {
             PrecedingMeanSquareLoudness = new List<MeanSquareLoudness>();
+
+            ShortTermMeanSquares = new double[ShortTermMeanSquaresLength];
+
+            BlockBuffer = new double[BlockStepCount][][];
+            StepBufferPosition = 0;
+            StepBuffer = new double[NumChannel][];
+            for (int i = 0; i < StepBuffer.Length; i++)
+            {
+                StepBuffer[i] = new double[StepSampleCount];
+            }
         }
 
         /// <summary>
