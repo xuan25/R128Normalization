@@ -71,7 +71,7 @@ namespace R128
                 double[][] buffer = wavReader.GetSampleData();
 
                 // Normalize
-                Normalize(buffer, fmt.SampleRate);
+                buffer = Normalize(buffer, fmt.SampleRate);
 
                 // Encode
                 WavWriter wavWriter = new WavWriter(buffer, fmt.SampleRate, 0x0003, 32, null, Encoding.Default);
@@ -102,7 +102,8 @@ namespace R128
         /// </summary>
         /// <param name="buffer">The buffer need to be normalize</param>
         /// <param name="sampleRate">The sample rate of the sample data</param>
-        public static void Normalize(double[][] buffer, double sampleRate)
+        /// <returns>Normalized buffer</returns>
+        public static double[][] Normalize(double[][] buffer, double sampleRate)
         {
             // Calc input loudness
             R128LufsMeter r128LufsMeter = new R128LufsMeter();
@@ -164,8 +165,9 @@ namespace R128
 
             if(clone != null)
             {
-                buffer = clone;
+                return clone;
             }
+            return buffer;
         }
 
         private static void ConsoleClearLine()
