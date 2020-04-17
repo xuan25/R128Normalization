@@ -2,7 +2,9 @@
 
 ***中文说明请往下看***
 
-A audio auto normalization tool which followed EBU R128 standard.
+A audio auto normalization tool which followed EBU R128 standard. 
+
+[Download](https://github.com/xuan525/R128Normalization/releases)
 
 ## Features
 
@@ -39,6 +41,8 @@ Note : Allow to use the command **'loudness \[value\]'** or **'l \[value\]'** to
 ***For english description, please scroll up***
 
 遵循EBU R128标准的音频自动标准化工具。
+
+[下载](https://github.com/xuan525/R128Normalization/releases)
 
 ## 特性
 
