@@ -33,8 +33,13 @@ namespace R128.Utils
         /// <param name="toDb">Target level in dB</param>
         public static void ApplyGain(double[][] buffer, double fromDb, double toDb)
         {
-            double gain = toDb - fromDb;
-            double k = Math.Pow(10, gain / 20);
+            double gainDb = toDb - fromDb;
+            ApplyGain(buffer, gainDb);
+        }
+
+        public static void ApplyGain(double[][] buffer, double gainDb)
+        {
+            double k = Math.Pow(10, gainDb / 20);
             for (int channel = 0; channel < buffer.Length; channel++)
             {
                 for (int sample = 0; sample < buffer[channel].Length; sample++)

@@ -107,7 +107,7 @@ namespace R128
             // Calc input loudness
             R128LufsMeter r128LufsMeter = new R128LufsMeter();
             r128LufsMeter.Prepare(sampleRate, buffer.Length);
-            Console.Write("Calculating loudness...");
+            Console.Write("Calculating input loudness...");
             r128LufsMeter.StartIntegrated();
             R128LufsMeter.Result[] results = r128LufsMeter.ProcessBuffer(buffer);
             r128LufsMeter.StopIntegrated();
@@ -118,32 +118,48 @@ namespace R128
 
             // Normalization to -23 LU
             double targetLoudness = -23;
+            double gain = targetLoudness - integratedLoudness;
             int count = 0;
-            while (Math.Abs(integratedLoudness - targetLoudness) > 0.5)
+            double[][] clone = null;
+            while (Math.Abs(targetLoudness - integratedLoudness) > 0.5)
             {
                 count++;
-                // Apply gain to normalize
+
+                // Clone buffer
+                clone = new double[buffer.Length][];
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    clone[i] = (double[])buffer[i].Clone();
+                }
+
+                // Apply gain to normalize to -23dB
                 Console.Write("Applying gain...");
-                Gain.ApplyGain(buffer, integratedLoudness, targetLoudness);
-                Console.WriteLine("\rGain applyed : {0}dB", targetLoudness - integratedLoudness);
+                Gain.ApplyGain(clone, gain);
+                Console.WriteLine("\rGain applyed : {0}dB", gain);
+
+                // Limit to -1 dB True Peak
+                TruePeakLimiter.ProcessBuffer(clone, -1, sampleRate, 0.001, 0.8,
+                    (double current, double total) => { if (current % 10000 == 0) { Console.Write("\rLimiting : {0:N0}/{1:N0}", current, total); } },
+                    //(double env) => streamWriter.WriteLine(env)
+                    null);
+                Console.WriteLine("\rLimiting finished                 ");
 
                 // Calc output loudness
-                Console.Write("Calculating loudness...");
+                Console.Write("Calculating output loudness...");
                 r128LufsMeter.StartIntegrated();
-                results = r128LufsMeter.ProcessBuffer(buffer);
+                results = r128LufsMeter.ProcessBuffer(clone);
                 r128LufsMeter.StopIntegrated();
 
                 // Report output loudness
                 integratedLoudness = r128LufsMeter.IntegratedLoudness;
                 Console.WriteLine("\rOutput integrated loudness {0}: {1} LU", count, integratedLoudness);
+                gain += targetLoudness - integratedLoudness;
             }
 
-            // Limit to -1 dB True Peak
-            TruePeakLimiter.ProcessBuffer(buffer, -1, sampleRate, 0.001, 0.8,
-                (double current, double total) => { if (current % 10000 == 0) { Console.Write("\rLimiting : {0}/{1}", current, total); } },
-                //(double env) => streamWriter.WriteLine(env)
-                null);
-            Console.WriteLine("\rLimiting finished           ");
+            if(clone != null)
+            {
+                buffer = clone;
+            }
         }
 
         private static void GenarateLoudnessReport(R128LufsMeter.Result[] results, string filename)
