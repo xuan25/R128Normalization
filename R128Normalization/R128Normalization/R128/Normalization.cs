@@ -35,7 +35,11 @@ namespace R128
     public static class Normalization
     {
         public static double TargetIntegratedLufs { get; set; } = -23;
-        public static double TargetMaximumTruePeak { get; set; } = -1;
+        public static double MaximumTruePeak { get; set; } = -1;
+        public static double LimiterAttack { get; set; } = 0.010;
+        public static double LimiterRelease { get; set; } = 0.300;
+        public static double LimiterAttackCurve { get; set; } = 2;
+        public static double LimiterReleaseCurve { get; set; } = 2;
 
         /// <summary>
         /// Normalize a file using EBU R128 standard
@@ -145,12 +149,13 @@ namespace R128
                 Console.WriteLine($"Gain applyed : {gain:N} dB");
 
                 // Limit the True Peak
-                TruePeakLimiter.ProcessBuffer(clone, TargetMaximumTruePeak, sampleRate, 0.001, 0.8,
-                    (double current, double total) => { if (current % 10000 == 0) { AppendConsoleProgressBar($"Limiting : {current:N0}/{total:N0}", (double)current / total); } },
-                    //(double env) => streamWriter.WriteLine(env)
-                    null);
+                StreamWriter streamWriter = new StreamWriter("limiter.csv");
+                int c = 0;
+                TruePeakLimiter.ProcessBuffer(clone, MaximumTruePeak, sampleRate, LimiterAttack, LimiterRelease, LimiterAttackCurve, LimiterReleaseCurve, 
+                    (double current, double total) => { if (current % 10000 == 0) { AppendConsoleProgressBar($"Limiting : {current:N0}/{total:N0}", (double)current / total); } });
                 ConsoleClearLine();
                 Console.WriteLine("Limiting finished!");
+                streamWriter.Close();
 
                 // Calc output loudness
                 Console.Write("Verifying output loudness...");

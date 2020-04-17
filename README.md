@@ -23,7 +23,15 @@ A audio auto normalization tool which followed EBU R128 standard.
 4. Wait for processing.
 5. The output will be in the same parent directory with a "_norm" postfix in the filename or directory name.
 
-Note : Allow to use the command **'loudness \[value\]'** or **'l \[value\]'** to query or set a custom **target integrated loudness**; Allow to use the command **'peak \[value\]'** or **'p \[value\]'** to query or set a custom **maximum true peak**.
+## Commands
+- Type     **'loudness [value]'** or  **'l [value]'** for query or set **Target integrated loudness (LUFS)**.
+- Type         **'peak [value]'** or  **'p [value]'** for query or set **Maximum true peak (dB)**.
+- Type       **'attack [value]'** or  **'a [value]'** for query or set **Attack duration for Limiter (s)**.
+- Type      **'release [value]'** or  **'r [value]'** for query or set **Release duration for Limiter (s)**.
+- Type  **'attackCurve [value]'** or **'ac [value]'** for query or set **Attack curve tension for Limiter (1.0 - 8.0)**.
+- Type **'releaseCurve [value]'** or **'rc [value]'** for query or set **Release curve tension for Limiter (1.0 - 8.0)**.
+- Type **'check'** or **'c'** to check the current parameters.
+- Type **'exit'** or **'quit'** to exit.
 
 ## Workflow
 
@@ -61,7 +69,15 @@ Note : Allow to use the command **'loudness \[value\]'** or **'l \[value\]'** to
 4. 等待处理。
 5. 输出将在相同的父目录中，文件名或目录名称中带有“ _norm”后缀。
 
-注：允许使用命令 **'loudness \[值\]'** 或 **'l \[值\]'** 查询或设置自定义**目标综合响度**；允许使用命令 **'peak \[值\]'** 或 **'p \[值\]'** 查询或设置自定义**最大真实峰值**。
+## 命令
+- 输入     **'loudness [值]'** 或  **'l [值]'** 来查询或设置 **目标综合响度 (LUFS)**。
+- 输入         **'peak [值]'** 或  **'p [值]'** 来查询或设置 **最大真实峰值 (dB)**。
+- 输入       **'attack [值]'** 或  **'a [值]'** 来查询或设置 **限制器的攻击持续时间 (s)**。
+- 输入      **'release [值]'** 或  **'r [值]'** 来查询或设置 **限制器的释放持续时间 (s)**。
+- 输入  **'attackCurve [值]'** 或 **'ac [值]'** 来查询或设置 **限制器的攻击曲线张力 (1.0 - 8.0)**。
+- 输入 **'releaseCurve [值]'** 或 **'rc [值]'** 来查询或设置 **限制器的释放曲线张力 (1.0 - 8.0)**。
+- 输入 **'check'** 或 **'c'** 来检查当前参数。
+- 输入 **'exit'** 或 **'quit'** 来退出。
 
 ## 工作流程
 

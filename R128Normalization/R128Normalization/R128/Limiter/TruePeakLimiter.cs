@@ -30,6 +30,8 @@ namespace R128.Limiter
         public int AttackSample { get; set; }
         public int ReleaseSample { get; set; }
         public int DelaySample => AttackSample;
+        public double AttackCurveTension { get; set; }
+        public double ReleaseCurveTension { get; set; }
 
         private double CurrentValue { get; set; }
         private double AttackStartValue { get; set; }
@@ -41,15 +43,19 @@ namespace R128.Limiter
         /// <summary>
         /// Constructor of TruePeakLimiter
         /// </summary>
-        /// <param name="threasholdDb"></param>
-        /// <param name="sampleRate"></param>
-        /// <param name="attack"></param>
-        /// <param name="release"></param>
-        public TruePeakLimiter(double threasholdDb, double sampleRate, double attack, double release)
+        /// <param name="threasholdDb">Threshold in dB</param>
+        /// <param name="sampleRate">Sample rate of the samples</param>
+        /// <param name="attack">Attack duration in seconds</param>
+        /// <param name="release">Release duration in seconds</param>
+        /// <param name="attackCurve">Attack curve tension</param>
+        /// <param name="releaseCurve">Release curve tension</param>
+        public TruePeakLimiter(double threasholdDb, double sampleRate, double attack, double release, double attackCurve, double releaseCurve)
         {
             LinearThreashold = Math.Pow(10, threasholdDb / 20);
             AttackSample = (int)Math.Round(sampleRate * attack);
             ReleaseSample = (int)Math.Round(sampleRate * release);
+            AttackCurveTension = attackCurve;
+            ReleaseCurveTension = releaseCurve;
 
             // init attack and release status
             CurrentValue = 1;
@@ -68,16 +74,17 @@ namespace R128.Limiter
         /// <param name="sampleRate">Sample rate of the samples</param>
         /// <param name="attack">Attack duration of the limiter in seconds</param>
         /// <param name="release">Release duration of the limiter in seconds</param>
+        /// <param name="attackCurve">Attack curve tension of the limiter</param>
+        /// <param name="releaseCurve">Release curve tension of the limiter</param>
         /// <param name="progressUpdated">ProgressUpdated event handler</param>
-        /// <param name="envelopUpdated">EnvelopUpdated event handler</param>
-        public static void ProcessBuffer(double[][] buffer, double threshold, double sampleRate, double attack, double release, Action<double, double> progressUpdated, Action<double> envelopUpdated)
+        public static void ProcessBuffer(double[][] buffer, double threshold, double sampleRate, double attack, double release, double attackCurve, double releaseCurve, Action<double, double> progressUpdated)
         {
             TruePeakMeter[] truePeakMeters = new TruePeakMeter[buffer.Length];
             for (int i = 0; i < truePeakMeters.Length; i++)
             {
                 truePeakMeters[i] = new TruePeakMeter();
             }
-            TruePeakLimiter truePeakLimiter = new TruePeakLimiter(threshold, sampleRate, attack, release);
+            TruePeakLimiter truePeakLimiter = new TruePeakLimiter(threshold, sampleRate, attack, release, attackCurve, releaseCurve);
 
             int sampleCount = buffer[0].Length;
             for (int sample = 0; sample < sampleCount + truePeakLimiter.DelaySample; sample++)
@@ -108,7 +115,6 @@ namespace R128.Limiter
                         buffer[channel][ratioSample] *= ratio;
                     }
                 }
-                envelopUpdated?.Invoke(ratio);
             }
         }
 
@@ -122,14 +128,14 @@ namespace R128.Limiter
             if (AttackPosition != -1 && AttackPosition < AttackSample)
             {
                 AttackPosition++;
-                double p = AttackEaseFunction((double)AttackPosition / AttackSample);
+                double p = AttackCurveFunction((double)AttackPosition / AttackSample);
                 double value = AttackStartValue - p * (AttackStartValue - AttackEndValue);
                 CurrentValue = value;
             }
             else if (ReleasePosition != -1 && ReleasePosition < ReleaseSample)
             {
                 ReleasePosition++;
-                double p = ReleaseEaseFunction((double)ReleasePosition / ReleaseSample);
+                double p = ReleaseCurveFunction((double)ReleasePosition / ReleaseSample);
                 double value = ReleaseStartValue + p * (1 - ReleaseStartValue);
                 CurrentValue = value;
             }
@@ -150,14 +156,14 @@ namespace R128.Limiter
             return CurrentValue;
         }
 
-        private double ReleaseEaseFunction(double x)
+        private double ReleaseCurveFunction(double x)
         {
-            return Math.Pow(x, 2);
+            return Math.Pow(x, ReleaseCurveTension);
         }
 
-        private double AttackEaseFunction(double x)
+        private double AttackCurveFunction(double x)
         {
-            return 1 - Math.Pow(1 - x, 2);
+            return 1 - Math.Pow(1 - x, AttackCurveTension);
         }
 
     }
