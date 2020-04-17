@@ -32,8 +32,11 @@ namespace R128
     /// <summary>
     /// EBU R128 standard : https://tech.ebu.ch/docs/r/r128-2014.pdf
     /// </summary>
-    public class Normalization
+    public static class Normalization
     {
+        public static double TargetIntegratedLufs { get; set; } = -23;
+        public static double TargetMaximumTruePeak { get; set; } = -1;
+
         /// <summary>
         /// Normalize a file using EBU R128 standard
         /// </summary>
@@ -120,7 +123,7 @@ namespace R128
             Console.WriteLine("Input integrated loudness : {0:N} LU", integratedLoudness);
 
             // Normalization to -23 LU
-            double targetLoudness = -23;
+            double targetLoudness = TargetIntegratedLufs;
             double gain = targetLoudness - integratedLoudness;
             int count = 0;
             double[][] clone = null;
@@ -135,14 +138,14 @@ namespace R128
                     clone[i] = (double[])buffer[i].Clone();
                 }
 
-                // Apply gain to normalize to -23dB
+                // Apply gain to normalize
                 Console.Write("Applying gain...");
                 Gain.ApplyGain(clone, gain);
                 ConsoleClearLine();
                 Console.WriteLine($"Gain applyed : {gain:N} dB");
 
-                // Limit to -1 dB True Peak
-                TruePeakLimiter.ProcessBuffer(clone, -1, sampleRate, 0.001, 0.8,
+                // Limit the True Peak
+                TruePeakLimiter.ProcessBuffer(clone, TargetMaximumTruePeak, sampleRate, 0.001, 0.8,
                     (double current, double total) => { if (current % 10000 == 0) { AppendConsoleProgressBar($"Limiting : {current:N0}/{total:N0}", (double)current / total); } },
                     //(double env) => streamWriter.WriteLine(env)
                     null);

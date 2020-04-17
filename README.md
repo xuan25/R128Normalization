@@ -20,7 +20,16 @@ A audio auto normalization tool which followed EBU R128 standard
 4. Wait for processing.
 5. The output will be in the same parent directory with a "_norm" postfix in the filename or directory name.
 
----
+Note : Allow to use the command 'loudness \[value\]' or 'peak \[value\]' to query or set a custom standard.
+
+## Workflow
+
+1. Measure the original integrated loudness of the input audio
+2. Calculate the gain value based on the target integrated loudness and the original integrated loudness
+3. Apply gain to the original audio according to the calculated gain value
+4. Apply a limiter to the output audio according to the target maximum true peak
+5. Measure the integrated loudness of the output audio
+6. If the integrated loudness of the output audio is within the error range (± 0.5 LU), save the audio as a file, otherwise adjust the gain value and return to step 3
 
 ---
 
@@ -46,6 +55,15 @@ A audio auto normalization tool which followed EBU R128 standard
 4. 等待处理。
 5. 输出将在相同的父目录中，文件名或目录名称中带有“ _norm”后缀。
 
----
+注：允许使用命令 'loudness \[值\]' 或 'peak \[值\]' 查询或设置自定义标准。
+
+## 工作流程
+
+1. 测量输入音频的原始综合响度
+2. 根据目标综合响度和原始综合响度计算增益值
+3. 根据计算出的增益值将增益应用于原始音频
+4. 根据目标最大真实峰值对输出音频应用限制器
+5. 测量输出音频的综合响度
+6. 如果输出音频的综合响度在误差范围内（±0.5 LU），则将音频另存为文件，否则调整增益值并返回步骤3
 
 ---
