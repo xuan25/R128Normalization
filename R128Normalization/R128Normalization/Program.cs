@@ -36,14 +36,14 @@ namespace R128Normalization
             Console.WriteLine("under certain conditions; type `show c' for details.");
             Console.WriteLine();
             Console.WriteLine("Type a path to start the process.");
-            Console.WriteLine("Type 'loudness [value]' to show or set the target integrated loudness (LUFS).");
-            Console.WriteLine("Type 'peak [value]' to show or set the target maximum true peak (dB).");
+            Console.WriteLine("Type 'loudness [value]' or 'l [value]' to show or set the target integrated loudness (LUFS).");
+            Console.WriteLine("Type 'peak [value]' or 'p [value]' to show or set the maximum true peak (dB).");
             Console.WriteLine("Type 'exit' or 'quit' to exit.");
             Console.WriteLine();
 
             while (true)
             {
-                Console.Write("File path / Directory path or Command : ");
+                Console.Write("File/Directory/Command> ");
                 string input = string.Empty;
                 while (string.IsNullOrEmpty(input))
                 {
@@ -106,7 +106,7 @@ namespace R128Normalization
                             Console.WriteLine("Unknow command");
                         }
                     }
-                    else if(command[0] == "loudness")
+                    else if(command[0] == "loudness" || command[0] == "l")
                     {
                         if (command.Length == 1)
                         {
@@ -125,18 +125,18 @@ namespace R128Normalization
                             }
                         }
                     }
-                    else if (command[0] == "peak")
+                    else if (command[0] == "peak" || command[0] == "p")
                     {
                         if (command.Length == 1)
                         {
-                            Console.WriteLine($"The target maximum true peak currently is {Normalization.TargetMaximumTruePeak} LUFS");
+                            Console.WriteLine($"The maximum true peak currently is {Normalization.TargetMaximumTruePeak} LUFS");
                         }
                         else
                         {
                             if (double.TryParse(command[1], out double value))
                             {
-                                Normalization.TargetIntegratedLufs = value;
-                                Console.WriteLine($"The target maximum true peak currently is {Normalization.TargetMaximumTruePeak} LUFS");
+                                Normalization.TargetMaximumTruePeak = value;
+                                Console.WriteLine($"The maximum true peak currently is {Normalization.TargetMaximumTruePeak} LUFS");
                             }
                             else
                             {
