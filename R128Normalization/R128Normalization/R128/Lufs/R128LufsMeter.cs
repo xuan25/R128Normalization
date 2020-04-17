@@ -232,7 +232,7 @@ namespace R128.Lufs
         /// </summary>
         /// <param name="buffer">The samples need to be process</param>
         /// <returns>A array of result with the interval of 100ms</returns>
-        public Result[] ProcessBuffer(double[][] buffer)
+        public Result[] ProcessBuffer(double[][] buffer, Action<double, double> progressUpdated)
         {
             List<Result> results = new List<Result>();
             // Clone the buffer
@@ -249,8 +249,10 @@ namespace R128.Lufs
 
             // Init the process
             int bufferPosition = 0;
-            while (bufferPosition + (StepSampleCount - StepBufferPosition) < buffer[0].Length)
+            int bufferSampleCount = buffer[0].Length;
+            while (bufferPosition + (StepSampleCount - StepBufferPosition) < bufferSampleCount)
             {
+                progressUpdated?.Invoke(bufferPosition, bufferSampleCount);
                 // Enough to fill a step
                 for (int channel = 0; channel < NumChannel; channel++)
                 {

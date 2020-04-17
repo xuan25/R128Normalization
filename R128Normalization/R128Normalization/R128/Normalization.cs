@@ -109,12 +109,14 @@ namespace R128
             r128LufsMeter.Prepare(sampleRate, buffer.Length);
             Console.Write("Calculating input loudness...");
             r128LufsMeter.StartIntegrated();
-            R128LufsMeter.Result[] results = r128LufsMeter.ProcessBuffer(buffer);
+            R128LufsMeter.Result[] results = r128LufsMeter.ProcessBuffer(buffer,
+                (double current, double total) => { AppendConsoleProgressBar($"Calculating input loudness : {current:N0}/{total:N0}", (double)current / total); });
             r128LufsMeter.StopIntegrated();
 
             // Report input loudness
             double integratedLoudness = r128LufsMeter.IntegratedLoudness;
-            Console.WriteLine("\rInput integrated loudness: {0} LU", integratedLoudness);
+            ConsoleClearLine();
+            Console.WriteLine("Input integrated loudness : {0:N} LU", integratedLoudness);
 
             // Normalization to -23 LU
             double targetLoudness = -23;
@@ -135,24 +137,28 @@ namespace R128
                 // Apply gain to normalize to -23dB
                 Console.Write("Applying gain...");
                 Gain.ApplyGain(clone, gain);
-                Console.WriteLine("\rGain applyed : {0}dB", gain);
+                ConsoleClearLine();
+                Console.WriteLine("Gain applyed : {0}dB", gain);
 
                 // Limit to -1 dB True Peak
                 TruePeakLimiter.ProcessBuffer(clone, -1, sampleRate, 0.001, 0.8,
-                    (double current, double total) => { if (current % 10000 == 0) { Console.Write("\rLimiting : {0:N0}/{1:N0}", current, total); } },
+                    (double current, double total) => { if (current % 10000 == 0) { AppendConsoleProgressBar($"Limiting : {current:N0}/{total:N0}", (double)current / total); } },
                     //(double env) => streamWriter.WriteLine(env)
                     null);
-                Console.WriteLine("\rLimiting finished                 ");
+                ConsoleClearLine();
+                Console.WriteLine("Limiting finished!");
 
                 // Calc output loudness
                 Console.Write("Calculating output loudness...");
                 r128LufsMeter.StartIntegrated();
-                results = r128LufsMeter.ProcessBuffer(clone);
+                results = r128LufsMeter.ProcessBuffer(clone,
+                    (double current, double total) => { AppendConsoleProgressBar($"Calculating output loudness : {current:N0}/{total:N0}", (double)current / total); });
                 r128LufsMeter.StopIntegrated();
 
                 // Report output loudness
                 integratedLoudness = r128LufsMeter.IntegratedLoudness;
-                Console.WriteLine("\rOutput integrated loudness {0}: {1} LU", count, integratedLoudness);
+                ConsoleClearLine();
+                Console.WriteLine("Output integrated loudness {0} : {1:N} LU", count, integratedLoudness);
                 gain += targetLoudness - integratedLoudness;
             }
 
@@ -160,6 +166,38 @@ namespace R128
             {
                 buffer = clone;
             }
+        }
+
+        private static void ConsoleClearLine()
+        {
+            string clearString = '\r' + new string(' ', Console.WindowWidth - 1) + '\r';
+            Console.Write(clearString);
+        }
+
+        private static void AppendConsoleProgressBar(string prefix, double progress)
+        {
+            int progressBarLength = Console.WindowWidth - 1 - prefix.Length;
+            string postfix = progress.ToString("P");
+            int innerLength = progressBarLength - 4 - postfix.Length;
+
+            StringBuilder stringBuilder = new StringBuilder(prefix.Length + progressBarLength);
+            stringBuilder.Append('\r');
+            stringBuilder.Append(prefix);
+            stringBuilder.Append(" [");
+            for (int i = 0; i < innerLength; i++)
+            {
+                if(((double)i / innerLength) < progress)
+                {
+                    stringBuilder.Append('*');
+                }
+                else
+                {
+                    stringBuilder.Append(' ');
+                }
+            }
+            stringBuilder.Append("] ");
+            stringBuilder.Append(postfix);
+            Console.Write(stringBuilder.ToString());
         }
 
         private static void GenarateLoudnessReport(R128LufsMeter.Result[] results, string filename)
