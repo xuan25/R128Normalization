@@ -138,7 +138,7 @@ namespace R128
                 Console.Write("Applying gain...");
                 Gain.ApplyGain(clone, gain);
                 ConsoleClearLine();
-                Console.WriteLine("Gain applyed : {0}dB", gain);
+                Console.WriteLine($"Gain applyed : {gain:N} dB");
 
                 // Limit to -1 dB True Peak
                 TruePeakLimiter.ProcessBuffer(clone, -1, sampleRate, 0.001, 0.8,
@@ -149,10 +149,10 @@ namespace R128
                 Console.WriteLine("Limiting finished!");
 
                 // Calc output loudness
-                Console.Write("Calculating output loudness...");
+                Console.Write("Verifying output loudness...");
                 r128LufsMeter.StartIntegrated();
                 results = r128LufsMeter.ProcessBuffer(clone,
-                    (double current, double total) => { AppendConsoleProgressBar($"Calculating output loudness : {current:N0}/{total:N0}", (double)current / total); });
+                    (double current, double total) => { AppendConsoleProgressBar($"Verifying output loudness : {current:N0}/{total:N0}", (double)current / total); });
                 r128LufsMeter.StopIntegrated();
 
                 // Report output loudness
