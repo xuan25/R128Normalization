@@ -51,15 +51,22 @@ namespace R128
             try
             {
                 // Decode
-                WavReader wavReader;
-                try
+                WavReader wavReader = null;
+                if (Path.GetExtension(inputFile).ToLower() == ".wav")
                 {
-                    using (FileStream fileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                    try
                     {
-                        wavReader = new WavReader(fileStream, Encoding.Default);
+                        using (FileStream fileStream = new FileStream(inputFile, FileMode.Open, FileAccess.Read, FileShare.Read))
+                        {
+                            wavReader = new WavReader(fileStream, Encoding.Default);
+                        }
+                    }
+                    catch (WavReader.FormatNotSupportedException ex) 
+                    {
+                        wavReader = null;
                     }
                 }
-                catch (WavReader.FormatNotSupportedException ex)
+                if (wavReader == null)
                 {
                     Stream ffStream;
                     try
@@ -91,7 +98,7 @@ namespace R128
                     wavWriter.Infos = new System.Collections.Generic.SortedDictionary<string, string>();
                 }
                 wavWriter.Infos["ISFT"] = "Build-in codec";
-                wavWriter.Infos["ITCH"] = "Demo中文测试";
+                wavWriter.Infos["ITCH"] = "R128Normalization";
                 wavWriter.Save(outputFile);
                 Console.WriteLine("File saved: {0}", Path.GetFileNameWithoutExtension(outputFile));
             }
@@ -101,7 +108,7 @@ namespace R128
                 Console.WriteLine($"{ex.GetType()} : {ex.Message}");
                 Console.WriteLine(ex.StackTrace);
             }
-            
+            GC.Collect();
         }
 
         /// <summary>
