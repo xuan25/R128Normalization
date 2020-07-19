@@ -124,7 +124,7 @@ namespace R128
             r128LufsMeter.Prepare(sampleRate, buffer.Length);
             Console.Write("Calculating input loudness...");
             r128LufsMeter.StartIntegrated();
-            R128LufsMeter.Result[] results = r128LufsMeter.ProcessBuffer(buffer,
+            r128LufsMeter.ProcessBuffer(buffer,
                 (double current, double total) => { AppendConsoleProgressBar($"Calculating input loudness : {current:N0}/{total:N0}", (double)current / total); });
             r128LufsMeter.StopIntegrated();
 
@@ -167,7 +167,7 @@ namespace R128
                 // Calc output loudness
                 Console.Write("Verifying output loudness...");
                 r128LufsMeter.StartIntegrated();
-                results = r128LufsMeter.ProcessBuffer(clone,
+                r128LufsMeter.ProcessBuffer(clone,
                     (double current, double total) => { AppendConsoleProgressBar($"Verifying output loudness : {current:N0}/{total:N0}", (double)current / total); });
                 r128LufsMeter.StopIntegrated();
 

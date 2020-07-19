@@ -61,6 +61,10 @@ namespace R128.Lufs
         private SecondOrderIIRFilter PreFilter { get; set; }
         private SecondOrderIIRFilter HighPassFilter { get; set; }
 
+        public delegate void LoudnessUpdatedHandler(double loudness);
+        public LoudnessUpdatedHandler MomentaryLoudnessUpdated;
+        public LoudnessUpdatedHandler ShortTermLoudnessUpdated;
+
         /// <summary>
         /// The consturctor of the R128LufsMeter
         /// </summary>
@@ -90,12 +94,21 @@ namespace R128.Lufs
             BlockStepCount = BlockSampleCount / StepSampleCount;
 
             NumChannel = numChannels;
-            BlockBuffer = new double[BlockStepCount][][];
             StepBufferPosition = 0;
             StepBuffer = new double[NumChannel][];
             for (int i = 0; i < StepBuffer.Length; i++)
             {
                 StepBuffer[i] = new double[StepSampleCount];
+            }
+            BlockBuffer = new double[BlockStepCount][][];
+            for (int i = 0; i < BlockBuffer.Length; i++)
+            {
+                double[][] buffer = new double[NumChannel][];
+                for (int j = 0; j < StepBuffer.Length; j++)
+                {
+                    buffer[j] = new double[StepSampleCount];
+                }
+                BlockBuffer[i] = buffer;
             }
 
             // init short-term loudness
@@ -228,12 +241,28 @@ namespace R128.Lufs
 
             ShortTermMeanSquares = new double[ShortTermMeanSquaresLength];
 
-            BlockBuffer = new double[BlockStepCount][][];
             StepBufferPosition = 0;
-            StepBuffer = new double[NumChannel][];
             for (int i = 0; i < StepBuffer.Length; i++)
             {
-                StepBuffer[i] = new double[StepSampleCount];
+                double[] buffer = StepBuffer[i];
+                for (int j = 0; j < buffer.Length; j++)
+                {
+                    buffer[j] = 0;
+                }
+            }
+
+            for (int i = 0; i < BlockBuffer.Length; i++)
+            {
+                double[][] buffer = BlockBuffer[i];
+                for (int j = 0; j < StepBuffer.Length; j++)
+                {
+                    double[] b = buffer[j];
+                    for (int k = 0; k < b.Length; k++)
+                    {
+                        b[k] = 0;
+                    }
+                }
+                BlockBuffer[i] = buffer;
             }
         }
 
@@ -242,9 +271,8 @@ namespace R128.Lufs
         /// </summary>
         /// <param name="buffer">The samples need to be process</param>
         /// <returns>A array of result with the interval of 100ms</returns>
-        public Result[] ProcessBuffer(double[][] buffer, Action<double, double> progressUpdated)
+        public void ProcessBuffer(double[][] buffer, Action<double, double> progressUpdated)
         {
-            List<Result> results = new List<Result>();
             // Clone the buffer
             double[][] clone = new double[buffer.Length][];
             for (int i = 0; i < buffer.Length; i++)
@@ -270,16 +298,17 @@ namespace R128.Lufs
                 }
                 bufferPosition += StepSampleCount - StepBufferPosition;
 
-                // Calc momentory loudness
-                ShiftBuffer(BlockBuffer);
-                BlockBuffer[BlockBuffer.Length - 1] = StepBuffer;
-                StepBuffer = new double[NumChannel][];
-                for (int i = 0; i < StepBuffer.Length; i++)
+                // Swap buffer
+                double[][] temp = BlockBuffer[0];
+                for (int i = 1; i < BlockBuffer.Length; i++)
                 {
-                    StepBuffer[i] = new double[StepSampleCount];
+                    BlockBuffer[i - 1] = BlockBuffer[i];
                 }
+                BlockBuffer[BlockBuffer.Length - 1] = StepBuffer;
+                StepBuffer = temp;
                 StepBufferPosition = 0;
 
+                // Calc momentory loudness
                 double momentaryMeanSquare = 0;
                 if (BlockBuffer[0] != null)
                 {
@@ -305,20 +334,23 @@ namespace R128.Lufs
                     momentaryMeanSquare = 0;
                 }
                 double momentaryLoudness = -0.691 + 10 * Math.Log10(momentaryMeanSquare);
+                MomentaryLoudnessUpdated?.Invoke(momentaryLoudness);
 
-
-                // Calc short-term loudness
-                ShiftBuffer(ShortTermMeanSquares);
-                ShortTermMeanSquares[ShortTermMeanSquares.Length - 1] = momentaryMeanSquare;
-
-                double shortTermMeanSquaresSum = 0;
-                for (int i = 0; i < ShortTermMeanSquares.Length; i++)
+                if (ShortTermLoudnessUpdated != null)
                 {
-                    shortTermMeanSquaresSum += ShortTermMeanSquares[i];
-                }
-                double shortTermMeanSquareMean = shortTermMeanSquaresSum / ShortTermMeanSquares.Length;
-                double shortTermLoudness = -0.691 + 10 * Math.Log10(shortTermMeanSquareMean);
+                    // Calc short-term loudness
+                    ShiftBuffer(ShortTermMeanSquares);
+                    ShortTermMeanSquares[ShortTermMeanSquares.Length - 1] = momentaryMeanSquare;
 
+                    double shortTermMeanSquaresSum = 0;
+                    for (int i = 0; i < ShortTermMeanSquares.Length; i++)
+                    {
+                        shortTermMeanSquaresSum += ShortTermMeanSquares[i];
+                    }
+                    double shortTermMeanSquareMean = shortTermMeanSquaresSum / ShortTermMeanSquares.Length;
+                    double shortTermLoudness = -0.691 + 10 * Math.Log10(shortTermMeanSquareMean);
+                    ShortTermLoudnessUpdated?.Invoke(shortTermLoudness);
+                }
 
                 // Calc integrated loudness
                 if (IsIntegrating)
@@ -330,14 +362,6 @@ namespace R128.Lufs
                     };
                     PrecedingMeanSquareLoudness.Add(meanSquareLoudness);
                 }
-
-
-                Result result = new Result
-                {
-                    MomentaryLoudness = momentaryLoudness,
-                    ShortTermLoudness = shortTermLoudness
-                };
-                results.Add(result);
             }
 
             // Process remaining samples
@@ -347,19 +371,9 @@ namespace R128.Lufs
                 Array.Copy(buffer[channel], bufferPosition, StepBuffer[channel], StepBufferPosition, remainingLength);
             }
             StepBufferPosition = remainingLength;
-
-            return results.ToArray();
         }
 
         private void ShiftBuffer(double[] buffer)
-        {
-            for (int i = 1; i < buffer.Length; i++)
-            {
-                buffer[i - 1] = buffer[i];
-            }
-        }
-
-        private void ShiftBuffer(object[] buffer)
         {
             for (int i = 1; i < buffer.Length; i++)
             {
