@@ -43,6 +43,7 @@ namespace R128Normalization
             Console.WriteLine("    Type      'release [value]' or  'r [value]' for query or set Release duration for Limiter (s).");
             Console.WriteLine("    Type  'attackCurve [value]' or 'ac [value]' for query or set Attack curve tension for Limiter (1.0 - 8.0).");
             Console.WriteLine("    Type 'releaseCurve [value]' or 'rc [value]' for query or set Release curve tension for Limiter (1.0 - 8.0).");
+            Console.WriteLine("    Type   'loopVerify [value]' or 'lv [value]' for query or set LUFS Loop Verification (true, false).");
             Console.WriteLine("    Type 'check' or 'c' to check the current parameters.");
             Console.WriteLine("    Type 'exit' or 'quit' to exit.");
             Console.WriteLine();
@@ -176,6 +177,15 @@ namespace R128Normalization
                             return false;
                     Console.WriteLine($"The current Release curve tension for Limiter is {Normalization.LimiterReleaseCurve}");
                     break;
+                case "loopVerify":
+                case "lv":
+                    if (command.Length > 1)
+                        if (bool.TryParse(command[1], out bool value))
+                            Normalization.LoopVerify = value;
+                        else
+                            return false;
+                    Console.WriteLine($"Loop verification: {Normalization.LimiterReleaseCurve}");
+                    break;
                 case "check":
                 case "c":
                     Console.WriteLine($"The current Target integrated loudness is {Normalization.TargetIntegratedLufs} LUFS");
@@ -184,6 +194,7 @@ namespace R128Normalization
                     Console.WriteLine($"The current Release duration for Limiter is {Normalization.LimiterRelease} s");
                     Console.WriteLine($"The current Attack curve tension for Limiter is {Normalization.LimiterAttackCurve}");
                     Console.WriteLine($"The current Release curve tension for Limiter is {Normalization.LimiterReleaseCurve}");
+                    Console.WriteLine($"Loop verification: {Normalization.LimiterReleaseCurve}");
                     break;
                 case "exit":
                 case "quit":

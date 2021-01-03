@@ -40,6 +40,7 @@ namespace R128
         public static double LimiterRelease { get; set; } = 0.300;
         public static double LimiterAttackCurve { get; set; } = 2;
         public static double LimiterReleaseCurve { get; set; } = 2;
+        public static bool LoopVerify { get; set; } = false;
 
         /// <summary>
         /// Normalize a file using EBU R128 standard
@@ -176,6 +177,11 @@ namespace R128
                 ConsoleClearLine();
                 Console.WriteLine("Output integrated loudness {0} : {1:N} LU", count, integratedLoudness);
                 gain += targetLoudness - integratedLoudness;
+
+                if (!LoopVerify)
+                {
+                    break;
+                }
             }
 
             if(clone != null)
